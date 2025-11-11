@@ -20,12 +20,21 @@ const client = new MongoClient(uri, {
 });
 
 app.get("/", (req, res) => {
-  res.send("server is running");
+  res.send("FinEase Server is running");
 });
 
 async function run() {
   try {
     await client.connect();
+
+    const database = client.db("FinEase_DB")
+    const TransactionCollection = database.collection("Transactions")
+
+    app.post("/transaction", async (req, res) => {
+      const newTransaction = req.body
+      const result = await TransactionCollection.insertOne(newTransaction)
+      res.send(result)
+    })
 
     await client.db("admin").command({ ping: 1 });
     console.log(
