@@ -30,13 +30,13 @@ async function run() {
     const database = client.db("FinEase_DB");
     const TransactionCollection = database.collection("Transactions");
 
-    app.post("/transaction", async (req, res) => {
+    app.post("/add-transaction", async (req, res) => {
       const newTransaction = req.body;
       const result = await TransactionCollection.insertOne(newTransaction);
       res.send(result);
     });
 
-    app.get("/transactions", async (req, res) => {
+    app.get("/my-transactions", async (req, res) => {
       const cursor = TransactionCollection.find();
       const result = await cursor.toArray();
       res.send(result);
@@ -47,6 +47,23 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await TransactionCollection.findOne(query);
       res.send(result);
+    });
+
+    app.patch("/transaction/update/:id", async(req, res) => {
+      const id = req.params.id;
+      const updateTransaction = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: {
+          type: updateTransaction.type,
+          category: updateTransaction.category,
+          description: updateTransaction.description,
+          amount: updateTransaction.amount,
+          date: updateTransaction.date,
+        },
+      };
+      const result = await TransactionCollection.updateOne(query, update)
+      res.send(result)
     });
 
     app.delete("/transaction/:id", async (req, res) => {
