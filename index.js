@@ -30,25 +30,54 @@ async function run() {
     const database = client.db("FinEase_DB");
     const TransactionCollection = database.collection("Transactions");
 
+    // post a data 
     app.post("/add-transaction", async (req, res) => {
       const newTransaction = req.body;
       const result = await TransactionCollection.insertOne(newTransaction);
       res.send(result);
     });
 
-    app.get("/my-transactions", async (req, res) => {
-      const cursor = TransactionCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
+    // get all data
+   app.get("/my-transactions", async (req, res) => {
+     const email = req.query.email;
+     const { sortBy, order } = req.query;
 
+     let cursor = TransactionCollection.find({ email });
+
+     if (sortBy) {
+       const sortOrder = order === "asc" ? 1 : -1;
+       cursor = cursor.sort({ [sortBy]: sortOrder });
+     }
+
+     const result = await cursor.toArray();
+     res.send(result);
+   });
+
+
+    // get single data
     app.get("/transaction/:id", async (req, res) => {
       const id = req.params.id;
+      const email = req.query.email
       const query = { _id: new ObjectId(id) };
       const result = await TransactionCollection.findOne(query);
       res.send(result);
     });
 
+    // get one field of a data 
+    app.get("/my-reports", async (req, res) => {
+      const email = req.query.email
+      const expectedFields = {
+        type: 1,
+        amount: 1,
+        date: 1,
+      };
+      const cursor = TransactionCollection.find({email: email}).project(expectedFields);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+
+    // updata a data 
     app.patch("/transaction/update/:id", async(req, res) => {
       const id = req.params.id;
       const updateTransaction = req.body;
@@ -66,6 +95,7 @@ async function run() {
       res.send(result)
     });
 
+    // delete a data 
     app.delete("/transaction/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
