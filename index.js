@@ -27,14 +27,20 @@ async function run() {
   try {
     await client.connect();
 
-    const database = client.db("FinEase_DB")
-    const TransactionCollection = database.collection("Transactions")
+    const database = client.db("FinEase_DB");
+    const TransactionCollection = database.collection("Transactions");
 
     app.post("/transaction", async (req, res) => {
-      const newTransaction = req.body
-      const result = await TransactionCollection.insertOne(newTransaction)
-      res.send(result)
-    })
+      const newTransaction = req.body;
+      const result = await TransactionCollection.insertOne(newTransaction);
+      res.send(result);
+    });
+
+    app.get("/transaction", async (req, res) => {
+      const cursor = TransactionCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
