@@ -30,7 +30,7 @@ async function run() {
     const database = client.db("FinEase_DB");
     const TransactionCollection = database.collection("Transactions");
 
-    // post a data 
+    // post a data
     app.post("/add-transaction", async (req, res) => {
       const newTransaction = req.body;
       const result = await TransactionCollection.insertOne(newTransaction);
@@ -38,47 +38,61 @@ async function run() {
     });
 
     // get all data
-   app.get("/my-transactions", async (req, res) => {
-     const email = req.query.email;
-     const { sortBy, order } = req.query;
+    app.get("/my-transactions", async (req, res) => {
+      const email = req.query.email;
+      const { sortBy, order } = req.query;
 
-     let cursor = TransactionCollection.find({ email });
+      let cursor = TransactionCollection.find({ email });
 
-     if (sortBy) {
-       const sortOrder = order === "asc" ? 1 : -1;
-       cursor = cursor.sort({ [sortBy]: sortOrder });
-     }
+      if (sortBy) {
+        const sortOrder = order === "asc" ? 1 : -1;
+        cursor = cursor.sort({ [sortBy]: sortOrder });
+      }
 
-     const result = await cursor.toArray();
-     res.send(result);
-   });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
+    //get income and expense overview
+    app.get("/my-overview",async (req, res) => {
+      const { email } = req.query;
+      const expectedFields = {
+        type: 1,
+        amount: 1,
+      };
+      const cursor = TransactionCollection.find({ email }).project(
+        expectedFields
+      );
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     // get single data
     app.get("/transaction/:id", async (req, res) => {
       const id = req.params.id;
-      const email = req.query.email
+      const email = req.query.email;
       const query = { _id: new ObjectId(id) };
       const result = await TransactionCollection.findOne(query);
       res.send(result);
     });
 
-    // get one field of a data 
+    // get one field of a data
     app.get("/my-reports", async (req, res) => {
-      const email = req.query.email
+      const email = req.query.email;
       const expectedFields = {
         type: 1,
         amount: 1,
         date: 1,
       };
-      const cursor = TransactionCollection.find({email: email}).project(expectedFields);
+      const cursor = TransactionCollection.find({ email: email }).project(
+        expectedFields
+      );
       const result = await cursor.toArray();
       res.send(result);
     });
 
-
-    // updata a data 
-    app.patch("/transaction/update/:id", async(req, res) => {
+    // updata a data
+    app.patch("/transaction/update/:id", async (req, res) => {
       const id = req.params.id;
       const updateTransaction = req.body;
       const query = { _id: new ObjectId(id) };
@@ -91,11 +105,11 @@ async function run() {
           date: updateTransaction.date,
         },
       };
-      const result = await TransactionCollection.updateOne(query, update)
-      res.send(result)
+      const result = await TransactionCollection.updateOne(query, update);
+      res.send(result);
     });
 
-    // delete a data 
+    // delete a data
     app.delete("/transaction/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
