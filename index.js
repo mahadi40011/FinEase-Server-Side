@@ -67,6 +67,19 @@ async function run() {
       res.send(result);
     });
 
+    //get Total Amount of a Category
+    app.get("/category-total-amount",async (req, res) => {
+      const { email, category } = req.query;
+      const expectedFields = {
+        amount: 1,
+      };
+      const cursor = TransactionCollection.find({ email, category }).project(
+        expectedFields
+      );
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // get single data
     app.get("/transaction/:id", async (req, res) => {
       const id = req.params.id;
